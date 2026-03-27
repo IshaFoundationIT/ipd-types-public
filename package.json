@@ -1,6 +1,6 @@
 {
-  "name": "@ipd/types",
-  "version": "1.0.0",
+  "name": "@ishafoundationit/ipd-types",
+  "version": "1.0.1",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

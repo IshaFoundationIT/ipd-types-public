@@ -2,13 +2,7 @@
   "name": "@ipd/types",
   "version": "1.0.0",
   "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "scripts": {
-    "build": "tsc",
-    "prepublishOnly": "bun run build"
-  },
-  "devDependencies": {
-    "typescript": "~5.7.3"
+  "exports": {
+    ".": "./index.ts"
   }
 }

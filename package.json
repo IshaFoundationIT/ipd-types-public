@@ -1,8 +1,45 @@
 {
   "name": "@ipd/types",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "type": "module",
+  "files": [
+    "src",
+    "legacy",
+    "README.md",
+    "package.json",
+    "tsconfig.json",
+    "!src/**/__tests__"
+  ],
   "exports": {
-    ".": "./index.ts"
+    ".": "./src/index.ts",
+    "./attendance": "./src/attendance/index.ts",
+    "./batches": "./src/batches/index.ts",
+    "./chats": "./src/chats/index.ts",
+    "./common": "./src/common/index.ts",
+    "./conference": "./src/conference/index.ts",
+    "./constants": "./src/constants/index.ts",
+    "./elements": "./src/elements/index.ts",
+    "./events": "./src/events/index.ts",
+    "./jobs": "./src/jobs/index.ts",
+    "./pages": "./src/pages/index.ts",
+    "./programs": "./src/programs/index.ts",
+    "./registrations": "./src/registrations/index.ts",
+    "./sessions": "./src/sessions/index.ts",
+    "./steps": "./src/steps/index.ts",
+    "./tags": "./src/tags/index.ts",
+    "./users": "./src/users/index.ts",
+    "./workspaces": "./src/workspaces/index.ts",
+    "./legacy": "./legacy/index.ts",
+    "./legacy/*": "./legacy/*.ts"
+  },
+  "scripts": {
+    "test": "bun test src/",
+    "typecheck": "bunx tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "^4"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.12"
   }
 }

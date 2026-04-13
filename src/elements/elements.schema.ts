@@ -1,8 +1,9 @@
 import { z } from "zod";
 import {
-  TranslatableTextSchema,
+  DateTimeOrDateSchema,
   NumberPerLangSchema,
   TableEntrySchema,
+  TranslatableTextSchema,
 } from "../common/common.schema";
 import { VideoSourceTypeSchema } from "../constants/constants.schema";
 
@@ -88,13 +89,13 @@ export const GroupChatV2ContentSchema = z.object({
 export type GroupChatV2Content = z.infer<typeof GroupChatV2ContentSchema>;
 
 export const ZoomSessionContentSchema = z.object({
-  startTime: z.iso.datetime(),
-  endTime: z.iso.datetime(),
-  regCloseTime: z.iso.datetime(),
-  timerStartTime: z.iso.datetime(),
-  timerEndTime: z.iso.datetime(),
-  doorOpenTime: z.iso.datetime(),
-  doorCloseTime: z.iso.datetime(),
+  startTime: DateTimeOrDateSchema,
+  endTime: DateTimeOrDateSchema,
+  regCloseTime: DateTimeOrDateSchema,
+  timerStartTime: DateTimeOrDateSchema,
+  timerEndTime: DateTimeOrDateSchema,
+  doorOpenTime: DateTimeOrDateSchema,
+  doorCloseTime: DateTimeOrDateSchema,
   zoomAccountId: z.string(),
   zoomClientId: z.string(),
   zoomClientSecret: z.string(),
@@ -110,12 +111,12 @@ export type ZoomSessionContent = z.infer<typeof ZoomSessionContentSchema>;
 
 export const ConferencingContentSchema = z.looseObject({
   tagId: z.string().optional(),
-  startTime: z.iso.datetime(),
-  endTime: z.iso.datetime(),
-  timerStartTime: z.iso.datetime(),
-  timerEndTime: z.iso.datetime(),
-  doorOpenTime: z.iso.datetime(),
-  doorCloseTime: z.iso.datetime(),
+  startTime: DateTimeOrDateSchema,
+  endTime: DateTimeOrDateSchema,
+  timerStartTime: DateTimeOrDateSchema,
+  timerEndTime: DateTimeOrDateSchema,
+  doorOpenTime: DateTimeOrDateSchema,
+  doorCloseTime: DateTimeOrDateSchema,
   label: z.array(TranslatableTextSchema),
   ctaText: z.array(TranslatableTextSchema),
   isDelayed: z.boolean().optional(),

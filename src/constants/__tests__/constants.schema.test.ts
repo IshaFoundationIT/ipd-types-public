@@ -20,6 +20,7 @@ describe("ELEMENT_TYPE as const object", () => {
         "LANG_SELECT",
         "RICH_TEXT_V3",
         "GROUP_CHAT_V2",
+        "PAGE_CHAT",
         "ZOOM_SESSION",
         "CONFERENCING",
         "TAG_SELECT",
@@ -46,7 +47,9 @@ describe("ElementTypeSchema", () => {
 
 describe("VIDEO_SOURCE_TYPE as const object", () => {
   test("has the expected keys", () => {
-    expect(Object.keys(VIDEO_SOURCE_TYPE).sort()).toEqual(["HLS", "DASH", "YOUTUBE"].sort());
+    expect(Object.keys(VIDEO_SOURCE_TYPE).sort()).toEqual(
+      ["HLS", "DASH", "YOUTUBE", "VDO_CIPHER", "NONE"].sort(),
+    );
   });
 });
 
@@ -90,6 +93,15 @@ describe("PROGRAM_ACCESS_MODULES as const object", () => {
         "CONF_HOST",
         "PAGES",
         "COMMUNICATIONS",
+        "STREAM_VIEWER",
+        "JOBS",
+        "CONFERENCING",
+        "ECG_REPORTS",
+        "FORM_RESPONSES",
+        "HOME",
+        "MANAGE",
+        "PADLET_VIEWER",
+        "SUPPORT_TOOLS",
       ].sort(),
     );
   });

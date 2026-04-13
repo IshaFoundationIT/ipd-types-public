@@ -85,8 +85,13 @@ describe("WorkspaceAccessSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  test("rejects invalid email", () => {
-    const result = WorkspaceAccessSchema.safeParse({ ...valid, email: "nope" });
+  test("accepts plain-string email (legacy contract)", () => {
+    const result = WorkspaceAccessSchema.safeParse({ ...valid, email: "not-an-rfc-email" });
+    expect(result.success).toBe(true);
+  });
+
+  test("rejects numeric email", () => {
+    const result = WorkspaceAccessSchema.safeParse({ ...valid, email: 42 });
     expect(result.success).toBe(false);
   });
 });
@@ -108,9 +113,12 @@ describe("CreateWorkspaceAccessSchema", () => {
     }
   });
 
-  test("rejects invalid email", () => {
-    const result = CreateWorkspaceAccessSchema.safeParse({ ...valid, email: "nope" });
-    expect(result.success).toBe(false);
+  test("accepts plain-string email (legacy contract)", () => {
+    const result = CreateWorkspaceAccessSchema.safeParse({
+      ...valid,
+      email: "not-an-rfc-email",
+    });
+    expect(result.success).toBe(true);
   });
 });
 

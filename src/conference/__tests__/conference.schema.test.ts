@@ -24,12 +24,12 @@ describe("ConfSessionEligibleHostOptionSchema", () => {
     }
   });
 
-  test("rejects invalid email", () => {
+  test("accepts plain-string email (legacy contract)", () => {
     const result = ConfSessionEligibleHostOptionSchema.safeParse({
       ...valid,
-      email: "nope",
+      email: "not-an-rfc-email",
     });
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
   });
 
   test("rejects numeric ssoId", () => {
@@ -58,8 +58,11 @@ describe("ConfSessionCoHostOptionSchema", () => {
     }
   });
 
-  test("rejects invalid email", () => {
-    const result = ConfSessionCoHostOptionSchema.safeParse({ ...valid, email: "bad" });
-    expect(result.success).toBe(false);
+  test("accepts plain-string email (legacy contract)", () => {
+    const result = ConfSessionCoHostOptionSchema.safeParse({
+      ...valid,
+      email: "not-an-rfc-email",
+    });
+    expect(result.success).toBe(true);
   });
 });

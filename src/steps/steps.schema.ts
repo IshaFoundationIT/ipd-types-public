@@ -1,9 +1,11 @@
 import { z } from "zod";
 import { DateTimeOrDateSchema, TranslatableTextSchema } from "../common/common.schema";
 
+// TODO(contract-tighten): legacy IStepMeta is an open index signature; tighten once the producer contract stabilises.
 export const StepMetaSchema = z.record(z.string(), z.unknown());
 export type StepMeta = z.infer<typeof StepMetaSchema>;
 
+// TODO(contract-tighten): legacy IEligibilityCriteria is an open index signature; tighten once rules schema is agreed.
 export const EligibilityCriteriaSchema = z.record(z.string(), z.unknown());
 export type EligibilityCriteria = z.infer<typeof EligibilityCriteriaSchema>;
 

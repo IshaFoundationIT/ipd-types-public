@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
 import {
-  CreateWorkspaceAccessSchema,
+  CreateWorkspaceAccessRequestSchema,
   DeleteWorkspaceAccessRequestSchema,
   ListWorkspaceAccessesQuerySchema,
   ListWorkspacesQuerySchema,
-  UpdateWorkspaceAccessSchema,
+  UpdateWorkspaceAccessRequestSchema,
   WorkspaceAccessSchema,
   WorkspaceAccessTypeSchema,
   WorkspaceSchema,
@@ -131,7 +131,7 @@ describe("WorkspaceAccessSchema", () => {
   });
 });
 
-describe("CreateWorkspaceAccessSchema", () => {
+describe("CreateWorkspaceAccessRequestSchema", () => {
   const valid = {
     email: "a@b.com",
     name: "Jane",
@@ -140,13 +140,13 @@ describe("CreateWorkspaceAccessSchema", () => {
   };
 
   test("parses a valid create payload", () => {
-    const result = CreateWorkspaceAccessSchema.safeParse(valid);
+    const result = CreateWorkspaceAccessRequestSchema.safeParse(valid);
     expect(result.success).toBe(true);
   });
 
   test("rejects missing type", () => {
     const { type: _t, ...rest } = valid;
-    const result = CreateWorkspaceAccessSchema.safeParse(rest);
+    const result = CreateWorkspaceAccessRequestSchema.safeParse(rest);
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(
@@ -157,7 +157,7 @@ describe("CreateWorkspaceAccessSchema", () => {
 
   test("rejects missing ssoId", () => {
     const { ssoId: _s, ...rest } = valid;
-    const result = CreateWorkspaceAccessSchema.safeParse(rest);
+    const result = CreateWorkspaceAccessRequestSchema.safeParse(rest);
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(
@@ -168,7 +168,7 @@ describe("CreateWorkspaceAccessSchema", () => {
 
   test("rejects missing name", () => {
     const { name: _n, ...rest } = valid;
-    const result = CreateWorkspaceAccessSchema.safeParse(rest);
+    const result = CreateWorkspaceAccessRequestSchema.safeParse(rest);
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(
@@ -178,7 +178,7 @@ describe("CreateWorkspaceAccessSchema", () => {
   });
 
   test("rejects invalid type", () => {
-    const result = CreateWorkspaceAccessSchema.safeParse({
+    const result = CreateWorkspaceAccessRequestSchema.safeParse({
       ...valid,
       type: "MEMBER",
     });
@@ -186,7 +186,7 @@ describe("CreateWorkspaceAccessSchema", () => {
   });
 
   test("accepts plain-string email (legacy contract)", () => {
-    const result = CreateWorkspaceAccessSchema.safeParse({
+    const result = CreateWorkspaceAccessRequestSchema.safeParse({
       ...valid,
       email: "not-an-rfc-email",
     });
@@ -194,17 +194,17 @@ describe("CreateWorkspaceAccessSchema", () => {
   });
 });
 
-describe("UpdateWorkspaceAccessSchema", () => {
+describe("UpdateWorkspaceAccessRequestSchema", () => {
   const valid = { id: "550e8400-e29b-41d4-a716-446655440000", type: "MANAGER" };
 
   test("parses a valid update payload", () => {
-    const result = UpdateWorkspaceAccessSchema.safeParse(valid);
+    const result = UpdateWorkspaceAccessRequestSchema.safeParse(valid);
     expect(result.success).toBe(true);
   });
 
   test("rejects missing id", () => {
     const { id: _id, ...rest } = valid;
-    const result = UpdateWorkspaceAccessSchema.safeParse(rest);
+    const result = UpdateWorkspaceAccessRequestSchema.safeParse(rest);
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.issues[0]!.path).toEqual(["id"]);
@@ -212,12 +212,12 @@ describe("UpdateWorkspaceAccessSchema", () => {
   });
 
   test("rejects numeric id", () => {
-    const result = UpdateWorkspaceAccessSchema.safeParse({ ...valid, id: 42 });
+    const result = UpdateWorkspaceAccessRequestSchema.safeParse({ ...valid, id: 42 });
     expect(result.success).toBe(false);
   });
 
   test("rejects invalid type", () => {
-    const result = UpdateWorkspaceAccessSchema.safeParse({
+    const result = UpdateWorkspaceAccessRequestSchema.safeParse({
       ...valid,
       type: "OWNER",
     });

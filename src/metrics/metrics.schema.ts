@@ -50,11 +50,15 @@ export const ProgramCompletionDropoutRowSchema = z
     dropoutCount: z.number().optional(),
   })
   .passthrough();
+export type ProgramCompletionDropoutRow = z.infer<
+  typeof ProgramCompletionDropoutRowSchema
+>;
 
 export const ProgramOptionSchema = z.object({
   label: z.string(),
   value: z.string(),
 });
+export type ProgramOption = z.infer<typeof ProgramOptionSchema>;
 
 export const ProgramCompletionDropoutResponseSchema = z.object({
   completionDropoutData: z.array(ProgramCompletionDropoutRowSchema),

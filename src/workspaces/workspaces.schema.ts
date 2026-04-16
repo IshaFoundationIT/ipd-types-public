@@ -38,20 +38,24 @@ export const WorkspaceSchema = z.object({
 });
 export type Workspace = z.infer<typeof WorkspaceSchema>;
 
-export const CreateWorkspaceAccessSchema = z.object({
+export const CreateWorkspaceAccessRequestSchema = z.object({
   // TODO(contract-tighten): backend validator is still t.String(); switch to z.email() after it is tightened.
   email: z.string(),
   name: z.string(),
   ssoId: z.string(),
   type: WorkspaceAccessTypeSchema,
 });
-export type CreateWorkspaceAccess = z.infer<typeof CreateWorkspaceAccessSchema>;
+export type CreateWorkspaceAccessRequest = z.infer<
+  typeof CreateWorkspaceAccessRequestSchema
+>;
 
-export const UpdateWorkspaceAccessSchema = z.object({
+export const UpdateWorkspaceAccessRequestSchema = z.object({
   id: z.string(),
   type: WorkspaceAccessTypeSchema,
 });
-export type UpdateWorkspaceAccess = z.infer<typeof UpdateWorkspaceAccessSchema>;
+export type UpdateWorkspaceAccessRequest = z.infer<
+  typeof UpdateWorkspaceAccessRequestSchema
+>;
 
 export const DeleteWorkspaceAccessRequestSchema = z.object({
   id: z.string(),

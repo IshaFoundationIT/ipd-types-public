@@ -61,4 +61,32 @@ describe("PageSchema", () => {
     const result = PageSchema.safeParse({ ...valid, startTime: "bad-date" });
     expect(result.success).toBe(false);
   });
+
+  test("accepts page without label (optional)", () => {
+    const result = PageSchema.safeParse(valid);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.label).toBeUndefined();
+    }
+  });
+
+  test("accepts page with valid label array", () => {
+    const result = PageSchema.safeParse({
+      ...valid,
+      label: [{ lang: "en", text: "Home Page" }, { lang: "ta", text: "முகப்பு" }],
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.label).toHaveLength(2);
+      expect(result.data.label![0]!.lang).toBe("en");
+    }
+  });
+
+  test("rejects label entry missing text", () => {
+    const result = PageSchema.safeParse({
+      ...valid,
+      label: [{ lang: "en" }],
+    });
+    expect(result.success).toBe(false);
+  });
 });

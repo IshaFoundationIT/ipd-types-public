@@ -25,40 +25,29 @@ export type MetricsDateRangeWithIntervalQuery = z.infer<
   typeof MetricsDateRangeWithIntervalQuerySchema
 >;
 
-export const MetricsTimeSeriesPointSchema = z.object({
-  date: MetricsDateSchema,
-  value: z.number(),
+// Backend aggregates into { interval, count } pairs (interval is a bucket label, not always a date).
+export const MetricsIntervalCountSchema = z.object({
+  interval: z.string(),
+  count: z.number(),
 });
-export type MetricsTimeSeriesPoint = z.infer<
-  typeof MetricsTimeSeriesPointSchema
->;
+export type MetricsIntervalCount = z.infer<typeof MetricsIntervalCountSchema>;
 
-export const MetricsTimeSeriesResponseSchema = z.array(
-  MetricsTimeSeriesPointSchema,
+export const ActiveParticipantsResponseSchema = z.array(
+  MetricsIntervalCountSchema,
 );
-export type MetricsTimeSeriesResponse = z.infer<
-  typeof MetricsTimeSeriesResponseSchema
+export type ActiveParticipantsResponse = z.infer<
+  typeof ActiveParticipantsResponseSchema
 >;
 
-export const ActiveParticipantsResponseSchema = MetricsTimeSeriesResponseSchema;
-export type ActiveParticipantsResponse = MetricsTimeSeriesResponse;
-
-export const ProgramCountResponseSchema = MetricsTimeSeriesResponseSchema;
-export type ProgramCountResponse = MetricsTimeSeriesResponse;
-
-// metricsRepository rows carry extra columns beyond { id, name }; allow passthrough for forwards-compat.
-export const ProgramSummarySchema = z
-  .object({
-    id: z.string(),
-    name: z.string(),
-  })
-  .passthrough();
-export type ProgramSummary = z.infer<typeof ProgramSummarySchema>;
+export const ProgramCountResponseSchema = z.array(MetricsIntervalCountSchema);
+export type ProgramCountResponse = z.infer<typeof ProgramCountResponseSchema>;
 
 export const ProgramCompletionDropoutRowSchema = z
   .object({
     programId: z.string(),
-    name: z.string(),
+    name: z.string().nullable(),
+    completionCount: z.number().optional(),
+    dropoutCount: z.number().optional(),
   })
   .passthrough();
 
@@ -75,7 +64,18 @@ export type ProgramCompletionDropoutResponse = z.infer<
   typeof ProgramCompletionDropoutResponseSchema
 >;
 
-export const ActiveProgramsResponseSchema = z.array(ProgramSummarySchema);
+export const ActiveProgramSchema = z
+  .object({
+    programId: z.string(),
+    name: z.string().nullable(),
+    participants: z.number().optional(),
+    completion: z.number().optional(),
+    endTime: z.union([z.string(), z.date()]).optional(),
+  })
+  .passthrough();
+export type ActiveProgram = z.infer<typeof ActiveProgramSchema>;
+
+export const ActiveProgramsResponseSchema = z.array(ActiveProgramSchema);
 export type ActiveProgramsResponse = z.infer<
   typeof ActiveProgramsResponseSchema
 >;
@@ -84,12 +84,26 @@ export type ActiveProgramsResponse = z.infer<
 export const PagesMetricResponseSchema = z.array(z.unknown());
 export type PagesMetricResponse = z.infer<typeof PagesMetricResponseSchema>;
 
-export const RecentProgramsResponseSchema = z.array(ProgramSummarySchema);
+export const RecentProgramSchema = z
+  .object({
+    programId: z.string(),
+    name: z.string().nullable(),
+    startTime: z.union([z.string(), z.date()]).optional(),
+    endTime: z.union([z.string(), z.date()]).optional(),
+    legalEntity: z.string().nullable().optional(),
+    participants: z.number().optional(),
+    completion: z.number().optional(),
+    status: z.string().optional(),
+  })
+  .passthrough();
+export type RecentProgram = z.infer<typeof RecentProgramSchema>;
+
+export const RecentProgramsResponseSchema = z.array(RecentProgramSchema);
 export type RecentProgramsResponse = z.infer<
   typeof RecentProgramsResponseSchema
 >;
 
-// Rows are DB-driven JSON; shape tightens in a later wave.
+// Rows are DB-driven JSON computed by calculateProgramEngagementScores.
 export const ParticipantEngagementScoreRowSchema = z.record(
   z.string(),
   z.unknown(),

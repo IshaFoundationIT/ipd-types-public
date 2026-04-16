@@ -1,12 +1,13 @@
 import { describe, expect, test } from "bun:test";
 import {
   ActiveParticipantsResponseSchema,
+  ActiveProgramSchema,
   ActiveProgramsResponseSchema,
   MetricsDateRangeQuerySchema,
   MetricsDateRangeWithIntervalQuerySchema,
   MetricsDateSchema,
+  MetricsIntervalCountSchema,
   MetricsIntervalSchema,
-  MetricsTimeSeriesPointSchema,
   PagesMetricResponseSchema,
   ParticipantEngagementScoreResponseSchema,
   ParticipantEngagementScoreRowSchema,
@@ -14,7 +15,7 @@ import {
   ProgramCompletionDropoutRowSchema,
   ProgramCountResponseSchema,
   ProgramOptionSchema,
-  ProgramSummarySchema,
+  RecentProgramSchema,
   RecentProgramsResponseSchema,
 } from "../metrics.schema";
 
@@ -111,25 +112,32 @@ describe("MetricsDateRangeWithIntervalQuerySchema", () => {
   });
 });
 
-describe("MetricsTimeSeriesPointSchema", () => {
-  test("parses a valid point", () => {
-    const result = MetricsTimeSeriesPointSchema.safeParse({
-      date: "2026-04-01",
-      value: 42,
+describe("MetricsIntervalCountSchema", () => {
+  test("parses a valid { interval, count } pair", () => {
+    const result = MetricsIntervalCountSchema.safeParse({
+      interval: "2026-04-01",
+      count: 42,
     });
     expect(result.success).toBe(true);
   });
 
-  test("rejects non-number value", () => {
-    const result = MetricsTimeSeriesPointSchema.safeParse({
-      date: "2026-04-01",
-      value: "42",
+  test("accepts non-date interval labels (week/month/year buckets)", () => {
+    expect(
+      MetricsIntervalCountSchema.safeParse({ interval: "2026-W14", count: 3 })
+        .success,
+    ).toBe(true);
+  });
+
+  test("rejects non-number count", () => {
+    const result = MetricsIntervalCountSchema.safeParse({
+      interval: "2026-04-01",
+      count: "42",
     });
     expect(result.success).toBe(false);
   });
 
-  test("rejects missing date", () => {
-    const result = MetricsTimeSeriesPointSchema.safeParse({ value: 42 });
+  test("rejects missing interval", () => {
+    const result = MetricsIntervalCountSchema.safeParse({ count: 42 });
     expect(result.success).toBe(false);
   });
 });
@@ -139,18 +147,20 @@ describe("ActiveParticipantsResponseSchema", () => {
     expect(ActiveParticipantsResponseSchema.safeParse([]).success).toBe(true);
   });
 
-  test("parses an array of time series points", () => {
+  test("parses an array of interval/count pairs", () => {
     const result = ActiveParticipantsResponseSchema.safeParse([
-      { date: "2026-04-01", value: 10 },
-      { date: "2026-04-02", value: 15 },
+      { interval: "2026-04-01", count: 10 },
+      { interval: "2026-04-02", count: 15 },
     ]);
     expect(result.success).toBe(true);
   });
 
   test("rejects a non-array", () => {
     expect(
-      ActiveParticipantsResponseSchema.safeParse({ date: "2026-04-01", value: 10 })
-        .success,
+      ActiveParticipantsResponseSchema.safeParse({
+        interval: "2026-04-01",
+        count: 10,
+      }).success,
     ).toBe(false);
   });
 });
@@ -160,15 +170,17 @@ describe("ProgramCountResponseSchema", () => {
     expect(ProgramCountResponseSchema.safeParse([]).success).toBe(true);
   });
 
-  test("parses an array of time series points", () => {
+  test("parses an array of interval/count pairs", () => {
     const result = ProgramCountResponseSchema.safeParse([
-      { date: "2026-04-01", value: 2 },
+      { interval: "2026-04-01", count: 2 },
     ]);
     expect(result.success).toBe(true);
   });
 
-  test("rejects entries missing value", () => {
-    const result = ProgramCountResponseSchema.safeParse([{ date: "2026-04-01" }]);
+  test("rejects entries missing count", () => {
+    const result = ProgramCountResponseSchema.safeParse([
+      { interval: "2026-04-01" },
+    ]);
     expect(result.success).toBe(false);
   });
 });
@@ -182,17 +194,22 @@ describe("ProgramCompletionDropoutRowSchema", () => {
     expect(result.success).toBe(true);
   });
 
+  test("parses a row with null name", () => {
+    const result = ProgramCompletionDropoutRowSchema.safeParse({
+      programId: "pgm_1",
+      name: null,
+    });
+    expect(result.success).toBe(true);
+  });
+
   test("passes through extra fields", () => {
     const result = ProgramCompletionDropoutRowSchema.safeParse({
       programId: "pgm_1",
       name: "Program 1",
-      completion: 0.9,
-      dropout: 0.1,
+      completionCount: 12,
+      dropoutCount: 3,
     });
     expect(result.success).toBe(true);
-    if (result.success) {
-      expect((result.data as Record<string, unknown>).completion).toBe(0.9);
-    }
   });
 
   test("rejects missing programId", () => {
@@ -222,7 +239,12 @@ describe("ProgramCompletionDropoutResponseSchema", () => {
   test("parses a full response", () => {
     const result = ProgramCompletionDropoutResponseSchema.safeParse({
       completionDropoutData: [
-        { programId: "pgm_1", name: "Program 1", completion: 0.9 },
+        {
+          programId: "pgm_1",
+          name: "Program 1",
+          completionCount: 5,
+          dropoutCount: 1,
+        },
       ],
       programOptions: [{ label: "Program 1", value: "pgm_1" }],
     });
@@ -245,28 +267,36 @@ describe("ProgramCompletionDropoutResponseSchema", () => {
   });
 });
 
-describe("ProgramSummarySchema", () => {
+describe("ActiveProgramSchema", () => {
   test("parses a minimal program", () => {
-    const result = ProgramSummarySchema.safeParse({ id: "pgm_1", name: "P1" });
-    expect(result.success).toBe(true);
-  });
-
-  test("passes through extra fields", () => {
-    const result = ProgramSummarySchema.safeParse({
-      id: "pgm_1",
+    const result = ActiveProgramSchema.safeParse({
+      programId: "pgm_1",
       name: "P1",
-      startDate: "2026-04-01",
     });
     expect(result.success).toBe(true);
   });
 
-  test("rejects missing id", () => {
-    const result = ProgramSummarySchema.safeParse({ name: "P1" });
-    expect(result.success).toBe(false);
+  test("accepts null name", () => {
+    const result = ActiveProgramSchema.safeParse({
+      programId: "pgm_1",
+      name: null,
+    });
+    expect(result.success).toBe(true);
   });
 
-  test("rejects missing name", () => {
-    const result = ProgramSummarySchema.safeParse({ id: "pgm_1" });
+  test("accepts optional participants/completion/endTime", () => {
+    const result = ActiveProgramSchema.safeParse({
+      programId: "pgm_1",
+      name: "P1",
+      participants: 100,
+      completion: 42,
+      endTime: "2026-12-31T00:00:00.000Z",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  test("rejects missing programId", () => {
+    const result = ActiveProgramSchema.safeParse({ name: "P1" });
     expect(result.success).toBe(false);
   });
 });
@@ -278,14 +308,17 @@ describe("ActiveProgramsResponseSchema", () => {
 
   test("parses a list of programs", () => {
     const result = ActiveProgramsResponseSchema.safeParse([
-      { id: "pgm_1", name: "P1" },
+      { programId: "pgm_1", name: "P1" },
     ]);
     expect(result.success).toBe(true);
   });
 
   test("rejects a non-array input", () => {
     expect(
-      ActiveProgramsResponseSchema.safeParse({ id: "pgm_1", name: "P1" }).success,
+      ActiveProgramsResponseSchema.safeParse({
+        programId: "pgm_1",
+        name: "P1",
+      }).success,
     ).toBe(false);
   });
 });
@@ -296,11 +329,37 @@ describe("PagesMetricResponseSchema", () => {
   });
 
   test("parses an array of arbitrary items", () => {
-    expect(PagesMetricResponseSchema.safeParse([1, "a", null]).success).toBe(true);
+    expect(PagesMetricResponseSchema.safeParse([1, "a", null]).success).toBe(
+      true,
+    );
   });
 
   test("rejects a non-array input", () => {
     expect(PagesMetricResponseSchema.safeParse({}).success).toBe(false);
+  });
+});
+
+describe("RecentProgramSchema", () => {
+  test("parses a minimal program", () => {
+    const result = RecentProgramSchema.safeParse({
+      programId: "pgm_1",
+      name: "P1",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  test("accepts optional timing fields", () => {
+    const result = RecentProgramSchema.safeParse({
+      programId: "pgm_1",
+      name: "P1",
+      startTime: "2026-04-01T00:00:00.000Z",
+      endTime: "2026-04-30T00:00:00.000Z",
+      legalEntity: "IBPL",
+      participants: 100,
+      completion: 50,
+      status: "Active",
+    });
+    expect(result.success).toBe(true);
   });
 });
 
@@ -311,7 +370,7 @@ describe("RecentProgramsResponseSchema", () => {
 
   test("parses a list of programs", () => {
     const result = RecentProgramsResponseSchema.safeParse([
-      { id: "pgm_1", name: "P1" },
+      { programId: "pgm_1", name: "P1" },
     ]);
     expect(result.success).toBe(true);
   });
@@ -319,7 +378,9 @@ describe("RecentProgramsResponseSchema", () => {
 
 describe("ParticipantEngagementScoreRowSchema", () => {
   test("parses an empty row", () => {
-    expect(ParticipantEngagementScoreRowSchema.safeParse({}).success).toBe(true);
+    expect(ParticipantEngagementScoreRowSchema.safeParse({}).success).toBe(
+      true,
+    );
   });
 
   test("passes through any fields", () => {
@@ -331,15 +392,17 @@ describe("ParticipantEngagementScoreRowSchema", () => {
   });
 
   test("rejects non-object input", () => {
-    expect(ParticipantEngagementScoreRowSchema.safeParse(42).success).toBe(false);
+    expect(ParticipantEngagementScoreRowSchema.safeParse(42).success).toBe(
+      false,
+    );
   });
 });
 
 describe("ParticipantEngagementScoreResponseSchema", () => {
   test("parses an empty list", () => {
-    expect(ParticipantEngagementScoreResponseSchema.safeParse([]).success).toBe(
-      true,
-    );
+    expect(
+      ParticipantEngagementScoreResponseSchema.safeParse([]).success,
+    ).toBe(true);
   });
 
   test("parses a list of rows", () => {
@@ -351,7 +414,8 @@ describe("ParticipantEngagementScoreResponseSchema", () => {
 
   test("rejects a non-array input", () => {
     expect(
-      ParticipantEngagementScoreResponseSchema.safeParse({ userId: "u1" }).success,
+      ParticipantEngagementScoreResponseSchema.safeParse({ userId: "u1" })
+        .success,
     ).toBe(false);
   });
 });

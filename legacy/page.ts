@@ -3,6 +3,7 @@ export interface IPage {
   name: string;
   isAvailable: boolean;
   slug: string;
+  label?: { lang: string; text: string }[];
   elements: string[];
   sessions: string[];
   config: { supportedLanguages?: string[]; enableTracking?: boolean };

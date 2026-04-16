@@ -36,6 +36,26 @@ export const VIDEO_PLAY_TYPE = {
 export type VideoPlayType = (typeof VIDEO_PLAY_TYPE)[keyof typeof VIDEO_PLAY_TYPE];
 export const VideoPlayTypeSchema = z.enum(VIDEO_PLAY_TYPE);
 
+export const WORKSPACE_ACCESS_TYPES = {
+  ADMIN: "ADMIN",
+  MANAGER: "MANAGER",
+  USER: "USER",
+  S3_MANAGER: "S3_MANAGER",
+} as const;
+export type WorkspaceAccessType =
+  (typeof WORKSPACE_ACCESS_TYPES)[keyof typeof WORKSPACE_ACCESS_TYPES];
+export const WorkspaceAccessTypeSchema = z.enum(WORKSPACE_ACCESS_TYPES);
+
+export const METRICS_INTERVAL = {
+  DAILY: "daily",
+  WEEKLY: "weekly",
+  MONTHLY: "monthly",
+  YEARLY: "yearly",
+} as const;
+export type MetricsInterval =
+  (typeof METRICS_INTERVAL)[keyof typeof METRICS_INTERVAL];
+export const MetricsIntervalSchema = z.enum(METRICS_INTERVAL);
+
 export const PROGRAM_ACCESS_MODULES = {
   PROGRAM_CONFIG: "PROGRAM_CONFIG",
   CHAT_VIEWER: "CHAT_VIEWER",

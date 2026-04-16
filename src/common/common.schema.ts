@@ -27,6 +27,17 @@ export const PaginationModelSchema = z.object({
 });
 export type PaginationModel = z.infer<typeof PaginationModelSchema>;
 
+export const OffsetLimitQuerySchema = z.object({
+  offset: z.coerce.number(),
+  limit: z.coerce.number(),
+});
+export type OffsetLimitQuery = z.infer<typeof OffsetLimitQuerySchema>;
+
+export const IdParamSchema = z.object({
+  id: z.string().min(1),
+});
+export type IdParam = z.infer<typeof IdParamSchema>;
+
 export const SortFieldSchema = z.enum(["name", "createdAt", "updatedAt"]);
 export type SortField = z.infer<typeof SortFieldSchema>;
 

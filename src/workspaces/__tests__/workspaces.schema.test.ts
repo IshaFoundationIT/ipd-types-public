@@ -1,9 +1,13 @@
 import { describe, expect, test } from "bun:test";
 import {
-  WorkspaceSchema,
+  CreateWorkspaceAccessRequestSchema,
+  DeleteWorkspaceAccessRequestSchema,
+  ListWorkspaceAccessesQuerySchema,
+  ListWorkspacesQuerySchema,
+  UpdateWorkspaceAccessRequestSchema,
   WorkspaceAccessSchema,
-  CreateWorkspaceAccessSchema,
-  UpdateWorkspaceAccessSchema,
+  WorkspaceAccessTypeSchema,
+  WorkspaceSchema,
 } from "../workspaces.schema";
 
 describe("WorkspaceSchema", () => {
@@ -61,6 +65,32 @@ describe("WorkspaceSchema", () => {
   });
 });
 
+describe("WorkspaceAccessTypeSchema", () => {
+  test("accepts ADMIN", () => {
+    expect(WorkspaceAccessTypeSchema.safeParse("ADMIN").success).toBe(true);
+  });
+
+  test("accepts MANAGER", () => {
+    expect(WorkspaceAccessTypeSchema.safeParse("MANAGER").success).toBe(true);
+  });
+
+  test("accepts USER", () => {
+    expect(WorkspaceAccessTypeSchema.safeParse("USER").success).toBe(true);
+  });
+
+  test("accepts S3_MANAGER", () => {
+    expect(WorkspaceAccessTypeSchema.safeParse("S3_MANAGER").success).toBe(true);
+  });
+
+  test("rejects an invalid string", () => {
+    expect(WorkspaceAccessTypeSchema.safeParse("INVALID").success).toBe(false);
+  });
+
+  test("rejects a numeric input", () => {
+    expect(WorkspaceAccessTypeSchema.safeParse(1).success).toBe(false);
+  });
+});
+
 describe("WorkspaceAccessSchema", () => {
   const valid = {
     id: "550e8400-e29b-41d4-a716-446655440000",
@@ -85,6 +115,11 @@ describe("WorkspaceAccessSchema", () => {
     expect(result.success).toBe(false);
   });
 
+  test("rejects invalid type", () => {
+    const result = WorkspaceAccessSchema.safeParse({ ...valid, type: "MEMBER" });
+    expect(result.success).toBe(false);
+  });
+
   test("accepts plain-string email (legacy contract)", () => {
     const result = WorkspaceAccessSchema.safeParse({ ...valid, email: "not-an-rfc-email" });
     expect(result.success).toBe(true);
@@ -96,25 +131,62 @@ describe("WorkspaceAccessSchema", () => {
   });
 });
 
-describe("CreateWorkspaceAccessSchema", () => {
-  const valid = { email: "a@b.com", type: "ADMIN" };
+describe("CreateWorkspaceAccessRequestSchema", () => {
+  const valid = {
+    email: "a@b.com",
+    name: "Jane",
+    ssoId: "sso-123",
+    type: "ADMIN",
+  };
 
   test("parses a valid create payload", () => {
-    const result = CreateWorkspaceAccessSchema.safeParse(valid);
+    const result = CreateWorkspaceAccessRequestSchema.safeParse(valid);
     expect(result.success).toBe(true);
   });
 
   test("rejects missing type", () => {
     const { type: _t, ...rest } = valid;
-    const result = CreateWorkspaceAccessSchema.safeParse(rest);
+    const result = CreateWorkspaceAccessRequestSchema.safeParse(rest);
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.issues[0]!.path).toEqual(["type"]);
+      expect(
+        result.error.issues.some((issue) => issue.path.includes("type")),
+      ).toBe(true);
     }
   });
 
+  test("rejects missing ssoId", () => {
+    const { ssoId: _s, ...rest } = valid;
+    const result = CreateWorkspaceAccessRequestSchema.safeParse(rest);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(
+        result.error.issues.some((issue) => issue.path.includes("ssoId")),
+      ).toBe(true);
+    }
+  });
+
+  test("rejects missing name", () => {
+    const { name: _n, ...rest } = valid;
+    const result = CreateWorkspaceAccessRequestSchema.safeParse(rest);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(
+        result.error.issues.some((issue) => issue.path.includes("name")),
+      ).toBe(true);
+    }
+  });
+
+  test("rejects invalid type", () => {
+    const result = CreateWorkspaceAccessRequestSchema.safeParse({
+      ...valid,
+      type: "MEMBER",
+    });
+    expect(result.success).toBe(false);
+  });
+
   test("accepts plain-string email (legacy contract)", () => {
-    const result = CreateWorkspaceAccessSchema.safeParse({
+    const result = CreateWorkspaceAccessRequestSchema.safeParse({
       ...valid,
       email: "not-an-rfc-email",
     });
@@ -122,17 +194,17 @@ describe("CreateWorkspaceAccessSchema", () => {
   });
 });
 
-describe("UpdateWorkspaceAccessSchema", () => {
-  const valid = { id: "550e8400-e29b-41d4-a716-446655440000", type: "MEMBER" };
+describe("UpdateWorkspaceAccessRequestSchema", () => {
+  const valid = { id: "550e8400-e29b-41d4-a716-446655440000", type: "MANAGER" };
 
   test("parses a valid update payload", () => {
-    const result = UpdateWorkspaceAccessSchema.safeParse(valid);
+    const result = UpdateWorkspaceAccessRequestSchema.safeParse(valid);
     expect(result.success).toBe(true);
   });
 
   test("rejects missing id", () => {
     const { id: _id, ...rest } = valid;
-    const result = UpdateWorkspaceAccessSchema.safeParse(rest);
+    const result = UpdateWorkspaceAccessRequestSchema.safeParse(rest);
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.issues[0]!.path).toEqual(["id"]);
@@ -140,7 +212,91 @@ describe("UpdateWorkspaceAccessSchema", () => {
   });
 
   test("rejects numeric id", () => {
-    const result = UpdateWorkspaceAccessSchema.safeParse({ ...valid, id: 42 });
+    const result = UpdateWorkspaceAccessRequestSchema.safeParse({ ...valid, id: 42 });
+    expect(result.success).toBe(false);
+  });
+
+  test("rejects invalid type", () => {
+    const result = UpdateWorkspaceAccessRequestSchema.safeParse({
+      ...valid,
+      type: "OWNER",
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("DeleteWorkspaceAccessRequestSchema", () => {
+  test("parses { id: 'x' }", () => {
+    const result = DeleteWorkspaceAccessRequestSchema.safeParse({ id: "x" });
+    expect(result.success).toBe(true);
+  });
+
+  test("rejects empty body", () => {
+    const result = DeleteWorkspaceAccessRequestSchema.safeParse({});
+    expect(result.success).toBe(false);
+  });
+
+  test("rejects numeric id", () => {
+    const result = DeleteWorkspaceAccessRequestSchema.safeParse({ id: 42 });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("ListWorkspacesQuerySchema", () => {
+  test("parses numeric offset/limit", () => {
+    const result = ListWorkspacesQuerySchema.safeParse({ offset: 0, limit: 10 });
+    expect(result.success).toBe(true);
+  });
+
+  test("coerces string '10' to number 10", () => {
+    const result = ListWorkspacesQuerySchema.safeParse({
+      offset: "0",
+      limit: "10",
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.limit).toBe(10);
+      expect(result.data.offset).toBe(0);
+    }
+  });
+
+  test("rejects missing limit", () => {
+    const result = ListWorkspacesQuerySchema.safeParse({ offset: 0 });
+    expect(result.success).toBe(false);
+  });
+
+  test("rejects non-numeric string", () => {
+    const result = ListWorkspacesQuerySchema.safeParse({
+      offset: "abc",
+      limit: "10",
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("ListWorkspaceAccessesQuerySchema", () => {
+  test("parses numeric offset/limit", () => {
+    const result = ListWorkspaceAccessesQuerySchema.safeParse({
+      offset: 0,
+      limit: 10,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  test("coerces string '10' to number 10", () => {
+    const result = ListWorkspaceAccessesQuerySchema.safeParse({
+      offset: "5",
+      limit: "10",
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.offset).toBe(5);
+      expect(result.data.limit).toBe(10);
+    }
+  });
+
+  test("rejects missing offset", () => {
+    const result = ListWorkspaceAccessesQuerySchema.safeParse({ limit: 10 });
     expect(result.success).toBe(false);
   });
 });

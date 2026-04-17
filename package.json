@@ -1,6 +1,6 @@
 {
   "name": "@ipd/types",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "type": "module",
   "files": [
     "src",
@@ -20,7 +20,9 @@
     "./constants": "./src/constants/index.ts",
     "./elements": "./src/elements/index.ts",
     "./events": "./src/events/index.ts",
+    "./featureFlags": "./src/featureFlags/index.ts",
     "./jobs": "./src/jobs/index.ts",
+    "./metrics": "./src/metrics/index.ts",
     "./pages": "./src/pages/index.ts",
     "./programs": "./src/programs/index.ts",
     "./registrations": "./src/registrations/index.ts",

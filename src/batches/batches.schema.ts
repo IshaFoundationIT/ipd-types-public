@@ -33,7 +33,7 @@ export const CreateBatchRequestSchema = z.object({
   supportedLanguages: z.array(z.string()).optional(),
   learningCenter: z.string().optional(),
   lcEligibility: z.record(z.string(), z.unknown()).optional(),
-  tagQuestion: z.array(TranslatableTextSchema.nullable()).optional(),
+  tagQuestion: z.array(TranslatableTextSchema).optional(),
   attendanceEligibility: z.record(z.string(), z.unknown()).optional(),
   areTagsSwitchable: z.boolean().default(false),
 });
@@ -48,7 +48,7 @@ export const UpdateBatchRequestSchema = z.object({
   supportedLanguages: z.array(z.string()).optional(),
   learningCenter: z.string().optional(),
   lcEligibility: z.record(z.string(), z.unknown()).optional(),
-  tagQuestion: z.array(TranslatableTextSchema.nullable()).optional(),
+  tagQuestion: z.array(TranslatableTextSchema).optional(),
   attendanceEligibility: z.record(z.string(), z.unknown()).optional(),
   areTagsSwitchable: z.boolean().optional(),
 });

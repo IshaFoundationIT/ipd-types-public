@@ -120,7 +120,7 @@ describe("CreateBatchRequestSchema", () => {
     expect(result.success).toBe(true);
   });
 
-  test("accepts tagQuestion with mixed TranslatableText and null entries", () => {
+  test("rejects tagQuestion with null entries (matches BatchSchema response contract)", () => {
     const result = CreateBatchRequestSchema.safeParse({
       ...valid,
       tagQuestion: [
@@ -129,7 +129,30 @@ describe("CreateBatchRequestSchema", () => {
         { lang: "hi", text: "ha" },
       ],
     });
-    expect(result.success).toBe(true);
+    expect(result.success).toBe(false);
+  });
+
+  test("create tagQuestion shape matches BatchSchema response (request/response parity)", () => {
+    const input = {
+      ...valid,
+      tagQuestion: [{ lang: "en", text: "Which tag?" }],
+    };
+    expect(CreateBatchRequestSchema.safeParse(input).success).toBe(true);
+    expect(
+      BatchSchema.safeParse({
+        id: "btc_1",
+        programId: "pgm_1",
+        description: "",
+        supportedLanguages: [],
+        learningCenter: null,
+        lcEligibility: null,
+        attendanceEligibility: null,
+        areTagsSwitchable: false,
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+        ...input,
+      }).success,
+    ).toBe(true);
   });
 
   test("rejects missing name", () => {

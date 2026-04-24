@@ -53,6 +53,7 @@ export const SessionSchema = z.object({
   showForTags: z.array(z.string()),
   meetingAllocationEnabled: z.boolean().optional(),
   youtubeUrl: z.string().nullable().optional(),
+  alternateYoutubeEnabled: z.boolean().optional(),
   meetingRooms: z.array(MeetingRoomSchema).optional(),
   createdAt: DateTimeOrDateSchema,
   updatedAt: DateTimeOrDateSchema,

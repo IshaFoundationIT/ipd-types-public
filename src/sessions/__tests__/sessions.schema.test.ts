@@ -105,4 +105,22 @@ describe("SessionSchema", () => {
     const result = SessionSchema.safeParse({ ...valid, meta: "meta" });
     expect(result.success).toBe(false);
   });
+
+  test("parses a valid session with alternateYoutubeEnabled=true", () => {
+    const result = SessionSchema.safeParse({ ...valid, alternateYoutubeEnabled: true });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.alternateYoutubeEnabled).toBe(true);
+    }
+  });
+
+  test("parses a valid session without alternateYoutubeEnabled", () => {
+    const result = SessionSchema.safeParse(valid);
+    expect(result.success).toBe(true);
+  });
+
+  test("rejects non-boolean alternateYoutubeEnabled", () => {
+    const result = SessionSchema.safeParse({ ...valid, alternateYoutubeEnabled: "true" });
+    expect(result.success).toBe(false);
+  });
 });

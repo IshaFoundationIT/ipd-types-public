@@ -38,6 +38,7 @@ export interface ISession {
   showForTags: string[];
   meetingAllocationEnabled?: boolean;
   youtubeUrl?: string | null;
+  alternateYoutubeEnabled?: boolean;
   meetingRooms?: Array<{
     id?: string;
     label: string | null;
